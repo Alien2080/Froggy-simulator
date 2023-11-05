@@ -2,7 +2,7 @@
 # By Eleanor Aylen and Tom Aylen
 # Created 4/11/23
 
-# Import and initialize the pygame library
+# Import and initialise the pygame library.
 import pygame
 import random
 pygame.init()
@@ -14,18 +14,19 @@ POOP_BROWN = (87, 53, 4)
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
 
-# Define the Player object by extending pygame.sprite.Sprite
-# Instead of a surface, use an image for a better-looking sprite
+
+# Define the Froggy object by extending pygame.sprite.Sprite
 class Froggy(pygame.sprite.Sprite):
     def __init__(self):
         super(Froggy, self).__init__()
-        self.image = pygame.image.load("Images\Frog.svg").convert()
+        # use convert.alpha for a transperent background.
+        self.image = pygame.image.load("Images\Frog.svg").convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.center =  [250, 250]
+        # set the initial staarting position of the Frog.
+        self.rect.center = [250, 250]
 
-    def move(self):
-        screen.fill((0, 0, 0))
-        self.rect.move_ip(random.randint(-5, 5), random.randint(-5, 5))
+    def update(self):
+        self.rect.move_ip(random.randint(-5, 5), random.randint(-10, 10))
         if (self.rect.right > SCREEN_WIDTH):
             self.rect.right = SCREEN_WIDTH
         if (self.rect.top > SCREEN_HEIGHT):
@@ -35,29 +36,40 @@ class Froggy(pygame.sprite.Sprite):
         if (self.rect.bottom < 0):
             self.rect.bottom = 0
 
+
 class Poop(pygame.sprite.Sprite):
     def __init__(self, froggy_position):
         super(Poop, self).__init__()
         # first we need surface to draw poopy on
-        self.image = pygame.Surface((20, 20))
-        self.image.fill(BLACK)  
-        pygame.draw.circle(screen, POOP_BROWN, froggy_position, 20, 5)
+        self.surface = pygame.Surface((40, 40), pygame.SRCALPHA)
+        # now we can draw poopy on the surface.
+        pygame.draw.circle( self.surface, POOP_BROWN, (20, 20), 20)
+        # now we can use the surface, with the drawn poopy, as the sprite image
+        self.image =  self.surface
+        # create a rect (hitbox) for the sprite.
         self.rect = self.image.get_rect()
+        # move the sprite to the given Froggy position.
+        self.rect.center = froggy_position
 
-# Set up the drawing window
+
+# Set up the drawing window.
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 pygame.display.set_caption('Froggy simulator demo')
 
-#set up Froggy\ draw Froggy
+# Set up Froggy.
 froggy = Froggy()
 
-all_sprites = pygame.sprite.Group()
-all_sprites.add(froggy)
+# create group for frog sprites.
+frog_sprites = pygame.sprite.Group()
+frog_sprites.add(froggy)
+# create group for poop sprites.
+poop_sprites = pygame.sprite.Group()
 
+# Create custom event to control Frog movement.
 MOVEFROGGY = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVEFROGGY, 500)
 
-# Run until the user asks to quit
+# Main game loop.
 running = True
 while running:
 
@@ -66,15 +78,15 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        # Add a new cloud?
         elif event.type == MOVEFROGGY:
-            froggy.move()
-            poop = Poop(froggy.rect.center)
-            all_sprites.add(poop)
+            frog_sprites.update()
+            poop_sprites.add(Poop(froggy.rect.center))
 
-    # Flip the display
-    pygame.display.flip()
-    all_sprites.draw(screen)
+    # first draw the black over everything to remove old sprites.
+    screen.fill(pygame.Color("black"))
+    poop_sprites.draw(screen)
+    frog_sprites.draw(screen)
+    pygame.display.update()
 
 # Done! Time to quit.
 pygame.quit()
