@@ -10,6 +10,7 @@ pygame.init()
 # constants.
 BLACK = (0, 0, 0)
 WHITE = (250, 250, 250)
+POOP_BROWN = (87, 53, 4)
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 500
 
@@ -34,9 +35,18 @@ class Froggy(pygame.sprite.Sprite):
         if (self.rect.bottom < 0):
             self.rect.bottom = 0
 
+class Poop(pygame.sprite.Sprite):
+    def __init__(self, froggy_position):
+        super(Poop, self).__init__()
+        # first we need surface to draw poopy on
+        self.image = pygame.Surface((20, 20))
+        self.image.fill(BLACK)  
+        pygame.draw.circle(screen, POOP_BROWN, froggy_position, 20, 5)
+        self.rect = self.image.get_rect()
 
 # Set up the drawing window
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+pygame.display.set_caption('Froggy simulator demo')
 
 #set up Froggy\ draw Froggy
 froggy = Froggy()
@@ -59,14 +69,11 @@ while running:
         # Add a new cloud?
         elif event.type == MOVEFROGGY:
             froggy.move()
-   
-    # Draw a solid blue circle in the center
-    # pygame.draw.circle(screen, (0, 0, 255), (250, 250), 75)
+            poop = Poop(froggy.rect.center)
+            all_sprites.add(poop)
 
-    
     # Flip the display
     pygame.display.flip()
-
     all_sprites.draw(screen)
 
 # Done! Time to quit.
