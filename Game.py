@@ -26,7 +26,7 @@ class Froggy(pygame.sprite.Sprite):
         self.rect.center = [250, 250]
 
     def update(self):
-        self.rect.move_ip(random.randint(-5, 5), random.randint(-10, 10))
+        self.rect.move_ip(random.randint(-1, 1), random.randint(-1, 1))
         if (self.rect.right > SCREEN_WIDTH):
             self.rect.right = SCREEN_WIDTH
         if (self.rect.top > SCREEN_HEIGHT):
@@ -67,7 +67,7 @@ poop_sprites = pygame.sprite.Group()
 
 # Create custom event to control Frog movement.
 MOVEFROGGY = pygame.USEREVENT + 1
-pygame.time.set_timer(MOVEFROGGY, 500)
+pygame.time.set_timer(MOVEFROGGY, 100)
 
 # Main game loop.
 running = True
@@ -83,7 +83,7 @@ while running:
             poop_sprites.add(Poop(froggy.rect.center))
 
     # first draw the black over everything to remove old sprites.
-    screen.fill(pygame.Color("black"))
+    screen.fill("black")
     poop_sprites.draw(screen)
     frog_sprites.draw(screen)
     pygame.display.update()
