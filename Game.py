@@ -7,7 +7,7 @@ import pygame
 import random
 pygame.init()
 
-# constants.
+# Constants.
 BLACK = (0, 0, 0)
 WHITE = (250, 250, 250)
 POOP_BROWN = (87, 53, 4)
@@ -22,19 +22,24 @@ class Froggy(pygame.sprite.Sprite):
         # use convert.alpha for a transperent background.
         self.image = pygame.image.load("Images\Frog.svg").convert_alpha()
         self.rect = self.image.get_rect()
-        # set the initial staarting position of the Frog.
+        # set the initial starting position of the Frog.
         self.rect.center = [250, 250]
+        # set the initial direction of movement of the Frog.
+        self.dx = 0
+        self.dy = 0
 
     def update(self):
-        self.rect.move_ip(random.randint(-1, 1), random.randint(-1, 1))
-        if (self.rect.right > SCREEN_WIDTH):
-            self.rect.right = SCREEN_WIDTH
-        if (self.rect.top > SCREEN_HEIGHT):
-            self.rect.top = SCREEN_HEIGHT
+        self.rect.x += self.dx
+        self.rect.y += self.dy
+        # If touching the edge then reverse direction in that plane.
+        if (self.rect.right > SCREEN_WIDTH):           
+            self.dx = 0 - self.dx
+        if (self.rect.top < 0):
+            self.dy = 0 - self.dy
         if (self.rect.left < 0):
-            self.rect.left = 0
-        if (self.rect.bottom < 0):
-            self.rect.bottom = 0
+            self.dx = 0 - self.dx
+        if (self.rect.bottom > SCREEN_HEIGHT):
+            self.dy = 0 - self.dy
 
 
 class Poop(pygame.sprite.Sprite):
@@ -43,9 +48,10 @@ class Poop(pygame.sprite.Sprite):
         # first we need surface to draw poopy on
         self.surface = pygame.Surface((40, 40), pygame.SRCALPHA)
         # now we can draw poopy on the surface.
-        pygame.draw.circle( self.surface, POOP_BROWN, (20, 20), 20)
+        pygame.draw.circle(self.surface, POOP_BROWN, (20, 20), 20) 
+        pygame.draw.circle(self.surface, BLACK, (20, 20), 20, 2)       
         # now we can use the surface, with the drawn poopy, as the sprite image
-        self.image =  self.surface
+        self.image = self.surface
         # create a rect (hitbox) for the sprite.
         self.rect = self.image.get_rect()
         # move the sprite to the given Froggy position.
@@ -65,9 +71,18 @@ frog_sprites.add(froggy)
 # create group for poop sprites.
 poop_sprites = pygame.sprite.Group()
 
-# Create custom event to control Frog movement.
+# Create custom event to draw Frog movement.
 MOVEFROGGY = pygame.USEREVENT + 1
-pygame.time.set_timer(MOVEFROGGY, 100)
+# 15 milliseconds refresh rate is a bit over 60 FPS. So this should be smooth movement.
+pygame.time.set_timer(MOVEFROGGY, 15)
+
+# Create custom event to change Frog direction.
+CHANGEMOVEMENT = pygame.USEREVENT + 2
+pygame.time.set_timer(CHANGEMOVEMENT, random.randint(1000, 3000))
+
+# Create custom event to poop.
+POOPTIME = pygame.USEREVENT + 3
+pygame.time.set_timer(POOPTIME, random.randint(5000, 15000))
 
 # Main game loop.
 running = True
@@ -79,10 +94,22 @@ while running:
             running = False
 
         elif event.type == MOVEFROGGY:
+            # Move from in current direction.
             frog_sprites.update()
-            poop_sprites.add(Poop(froggy.rect.center))
 
-    # first draw the black over everything to remove old sprites.
+        elif event.type == CHANGEMOVEMENT:
+            # Randomly pick a new x and y direction. 0 means it will not move in that direction.
+            froggy.dx = random.randint(-1, 1)
+            froggy.dy = random.randint(-1, 1)
+            pygame.time.set_timer(CHANGEMOVEMENT, random.randint(1000, 3000))
+        
+        elif event.type == POOPTIME:
+            # If poop time add a new Poop sprite to the poop group at Froggies current location.
+            poop_sprites.add(Poop(froggy.rect.center))
+            pygame.time.set_timer(POOPTIME, random.randint(5000, 15000))
+
+        
+    # First draw black over everything to remove old sprites.
     screen.fill("black")
     poop_sprites.draw(screen)
     frog_sprites.draw(screen)
