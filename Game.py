@@ -33,6 +33,7 @@ class Froggy(pygame.sprite.Sprite):
         self.hopping = False   
         self.hopSteps = []
         self.hopIndex = 0
+        self.hunger = 0
   
     def calculateHop(self, landingPosition_x, landingPosition_y):
         # Clear previous values.
@@ -66,6 +67,7 @@ class Froggy(pygame.sprite.Sprite):
                 self.hopSteps.append((self.rect.centerx + int(((pixel * xModifier) * (hopLength_x/hopLength_y))), int(self.rect.centery + (pixel * yModifier))))  
 
         self.addHopVertical(self.hopSteps)  
+        # add step to ensure hop finishes on the exact landing position.
         self.hopSteps.append((landingPosition_x, landingPosition_y))
         self.hopping = True
         self.movementStyle = 'hop'
@@ -121,6 +123,15 @@ class Poop(pygame.sprite.Sprite):
         self.rect.center = froggy_position
 
 
+class FoodButton(pygame.sprite.Sprite):
+    def __init__(self):
+        super(FoodButton, self).__init__()
+        self.image = pygame.image.load("Images\FoodBowl_button.svg").convert_alpha()
+        self.rect = self.image.get_rect()
+        # set the initial starting position of the Frog.
+        self.rect.center = [450, 450]
+
+
 # Set up the drawing window.
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 pygame.display.set_caption('Froggy simulator demo')
@@ -133,6 +144,9 @@ frog_sprites = pygame.sprite.Group()
 frog_sprites.add(froggy)
 # create group for poop sprites.
 poop_sprites = pygame.sprite.Group()
+#create group for buttons
+buttons_sprites = pygame.sprite.Group()
+buttons_sprites.add(FoodButton())
 
 # Create custom event to draw Frog movement.
 MOVEFROGGY = pygame.USEREVENT + 1
@@ -151,6 +165,8 @@ pygame.time.set_timer(POOPTIME, random.randint(15000, 30000))
 HOP = pygame.USEREVENT + 4
 pygame.time.set_timer(HOP, random.randint(4000, 6000))
 
+HUNGERTIME = pygame.USEREVENT + 5
+pygame.time.set_timer(HUNGERTIME, 4*1000)
 
 # Main game loop.
 print('starting game loop')
@@ -188,11 +204,18 @@ while running:
                 newdy = random.randint(150, 350)
                 froggy.calculateHop(newdx, newdy)
                 print('calculating new hoop: {}, {}'.format(newdx, newdy))
+
+        elif event.type == HUNGERTIME:
+             froggy.hunger = froggy.hunger + 1
+             print('Hunger: {}'.format(froggy.hunger))
+             if (froggy.hunger == 10):
+                 print( "froggy dead you lose")
         
     # First draw black over everything to remove old sprites.
     screen.fill("black")
     poop_sprites.draw(screen)
     frog_sprites.draw(screen)
+    buttons_sprites.draw(screen)
     pygame.display.update()
 
 # Done! Time to quit.
