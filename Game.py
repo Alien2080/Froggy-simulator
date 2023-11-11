@@ -73,7 +73,7 @@ class Froggy(pygame.sprite.Sprite):
         self.movementStyle = 'hop'
 
     def addHopVertical(self, hopSteps):
-        maxHeightAdded = 2.5 * len(hopSteps)
+        maxHeightAdded = 2 + 0.5 * len(hopSteps)
         exp = 0.4
         #Find mid step
         midPoint = int(len(hopSteps)/2)
@@ -132,9 +132,18 @@ class FoodButton(pygame.sprite.Sprite):
         self.rect.center = [450, 450]
 
 
+def renderUItext(screen):
+    # render hunger level.
+    hunger_img = font.render('Hunger: {}'.format(froggy.hunger), True, WHITE)
+    screen.blit(hunger_img, (20, 20))
+
+
 # Set up the drawing window.
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 pygame.display.set_caption('Froggy simulator demo')
+
+# Set up font for UI elements.
+font = pygame.font.SysFont(None, 24)
 
 # Set up Froggy.
 froggy = Froggy()
@@ -216,6 +225,7 @@ while running:
     poop_sprites.draw(screen)
     frog_sprites.draw(screen)
     buttons_sprites.draw(screen)
+    renderUItext(screen)
     pygame.display.update()
 
 # Done! Time to quit.
