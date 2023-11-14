@@ -1,6 +1,7 @@
 # Froggy pet simulator.
 # By Eleanor Aylen and Tom Aylen
 # Created 4/11/23
+# Version 0.1
 
 # Import and initialise the pygame library.
 import pygame
@@ -34,7 +35,18 @@ class Froggy(pygame.sprite.Sprite):
         self.hopSteps = []
         self.hopIndex = 0
         self.hunger = 0
-  
+        self.blinking = False
+
+    def blink(self):
+        if self.blinking:
+            self.blinking = False
+            self.image = pygame.image.load("Images\Frog.svg").convert_alpha()
+            pygame.time.set_timer(BLINKTIMER,  random.randint(1000, 10000))
+        else:
+            self.blinking = True
+            self.image = pygame.image.load("Images\Frog_close_eyes.svg").convert_alpha()
+            pygame.time.set_timer(BLINKTIMER,500) 
+                
     def calculateHop(self, landingPosition_x, landingPosition_y):
         # Clear previous values.
         self.hopIndex = 0
@@ -124,18 +136,23 @@ class Poop(pygame.sprite.Sprite):
 
 
 class FoodButton(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, callback):
         super(FoodButton, self).__init__()
         self.image = pygame.image.load("Images\FoodBowl_button.svg").convert_alpha()
         self.rect = self.image.get_rect()
         # set the initial starting position of the Frog.
         self.rect.center = [450, 450]
+        self.callback = callback 
 
 
 def renderUItext(screen):
     # render hunger level.
     hunger_img = font.render('Hunger: {}'.format(froggy.hunger), True, WHITE)
     screen.blit(hunger_img, (20, 20))
+
+def onfoodclick():
+    froggy.hunger -= 1
+    
 
 
 # Set up the drawing window.
@@ -148,6 +165,8 @@ font = pygame.font.SysFont(None, 24)
 # Set up Froggy.
 froggy = Froggy()
 
+foodbowlbutton = FoodButton(onfoodclick)
+
 # create group for frog sprites.
 frog_sprites = pygame.sprite.Group()
 frog_sprites.add(froggy)
@@ -155,7 +174,7 @@ frog_sprites.add(froggy)
 poop_sprites = pygame.sprite.Group()
 #create group for buttons
 buttons_sprites = pygame.sprite.Group()
-buttons_sprites.add(FoodButton())
+buttons_sprites.add(foodbowlbutton)
 
 # Create custom event to draw Frog movement.
 MOVEFROGGY = pygame.USEREVENT + 1
@@ -176,6 +195,10 @@ pygame.time.set_timer(HOP, random.randint(4000, 6000))
 
 HUNGERTIME = pygame.USEREVENT + 5
 pygame.time.set_timer(HUNGERTIME, 4*1000)
+
+BLINKTIMER = pygame.USEREVENT + 6
+pygame.time.set_timer(BLINKTIMER,  random.randint(1000, 10000))
+
 
 # Main game loop.
 print('starting game loop')
@@ -215,10 +238,18 @@ while running:
                 print('calculating new hoop: {}, {}'.format(newdx, newdy))
 
         elif event.type == HUNGERTIME:
-             froggy.hunger = froggy.hunger + 1
-             print('Hunger: {}'.format(froggy.hunger))
-             if (froggy.hunger == 10):
-                 print( "froggy dead you lose")
+            froggy.hunger = froggy.hunger + 1
+            print('Hunger: {}'.format(froggy.hunger))
+            if (froggy.hunger == 10):
+                print( "froggy dead you lose")
+        
+        elif event.type == pygame.MOUSEBUTTONUP:
+                if foodbowlbutton.rect.collidepoint(event.pos):
+                    foodbowlbutton.callback()
+
+        elif event.type == BLINKTIMER:
+            froggy.blink()
+                
         
     # First draw black over everything to remove old sprites.
     screen.fill("black")
